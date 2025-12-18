@@ -26,7 +26,7 @@ df_reviews = session.sql(query).to_pandas()
 df_string = df_reviews.to_string(index=False)
 
 # Convert date columns to datetime
-df_reviews['REVIEW_DATE'] = pd.to_datetime(df_reviews['REVIEW_DATE'])
+df_reviews['REVIEW_DATE'] = pd.to_datetime(df_reviews['DATE'])
 df_reviews['SHIPPING_DATE'] = pd.to_datetime(df_reviews['SHIPPING_DATE'])
 
 # Visualization: Average Sentiment by Product
