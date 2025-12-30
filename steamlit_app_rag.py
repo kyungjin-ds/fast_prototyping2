@@ -15,7 +15,7 @@ from snowflake.core import Root
 session = st.connection("snowflake").session()
 
 # Create tabs
-tab1, tab2 = st.tabs(["Data & Plots", "RAG App"])
+tab1, tab2, tab3 = st.tabs(["Data & Plots", "RAG App", "Q&A Chatbot"])
 
 # Tab 1: Data and Plots
 with tab1:
@@ -101,3 +101,37 @@ with tab2:
                 st.write(f"**{row['CHUNK']}**")
                 st.caption(row['order_id'])
                 st.write('---')
+# Tab 3: Chatbot for Q&A
+with tab3:
+    st.title("Ask Questions About Your Data")
+    # Data loading functions
+    @st.cache_data
+    def load_data():
+        query_reviews = """
+        SELECT
+            *
+        FROM
+            REVIEWS_WITH_SENTIMENT
+        """
+        return session.sql(query_reviews).to_pandas()
+
+    # Load data
+    df_string = load_data().to_string()
+    
+    user_question = st.text_input("Enter your question here:")
+    
+    if user_question:
+       prompt = f"""
+    You are a helpful AI chat assistant. Answer the user's question based on the provided
+    context data from customer reviews provided below.
+    
+    Use the data in the  section to inform your answer about customer reviews or sentiments
+    if the question relates to it. If the question is general and not answerable from the context, answer naturally. Do not explicitly mention "based on the context" unless necessary for clarity.
+    
+    {df_string}
+    
+    {user_question}
+    
+    """
+       response = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', $${prompt}$$)").collect()[0][0]
+       st.write(response)
