@@ -62,17 +62,37 @@ ax.set_xlabel("Sentiment Score")
 ax.set_ylabel("Frequency")
 st.pyplot(fig)
 
+# # Chatbot for Q&A
+# st.subheader("Ask Questions About Your Data")
+# user_question = st.text_input("Enter your question here:")
+
+# if user_question:
+#     prompt = f'Answer this question using the dataset: {user_question} <context>{df_string}</context>'
+   
+#     ## Use this for Streamlit in Snowflake deployment
+#     # response = complete(model="claude-3-5-sonnet", prompt=f"Answer this question using the dataset: {user_question} <context>{df_string}</context>", session=session)
+
+#     ## Use this for Streamlit Community Cloud deployment
+#     response = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', $${prompt}$$)").collect()[0][0]
+    
+#     st.write(response)
+
 # Chatbot for Q&A
 st.subheader("Ask Questions About Your Data")
 user_question = st.text_input("Enter your question here:")
 
 if user_question:
-    prompt = f'Answer this question using the dataset: {user_question} <context>{df_string}</context>'
-   
-    ## Use this for Streamlit in Snowflake deployment
-    # response = complete(model="claude-3-5-sonnet", prompt=f"Answer this question using the dataset: {user_question} <context>{df_string}</context>", session=session)
+   prompt = f"""
+You are a helpful AI chat assistant. Answer the user's question based on the provided
+context data from customer reviews provided below.
 
-    ## Use this for Streamlit Community Cloud deployment
-    response = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', $${prompt}$$)").collect()[0][0]
-    
-    st.write(response)
+Use the data in the  section to inform your answer about customer reviews or sentiments
+if the question relates to it. If the question is general and not answerable from the context, answer naturally. Do not explicitly mention "based on the context" unless necessary for clarity.
+
+{df_string}
+
+{user_question}
+
+"""
+   response = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('claude-3-5-sonnet', $${prompt}$$)").collect()[0][0]
+   st.write(response)
